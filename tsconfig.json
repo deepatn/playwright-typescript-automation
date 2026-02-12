@@ -1,0 +1,20 @@
+{
+  "compilerOptions": {
+    "target": "ESNext",
+    "lib": ["ES2021", "dom"],
+    "module": "commonjs",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "moduleResolution": "node",
+    "types": ["node","@playwright/test"],
+    "resolveJsonModule": true
+  },
+  "include": [
+    "tests",
+    "pageobjects",
+    "Utils",
+    "features"
+  ]
+}

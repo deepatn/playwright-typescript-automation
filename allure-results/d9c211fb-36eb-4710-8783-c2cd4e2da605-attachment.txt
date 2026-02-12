@@ -1,0 +1,8 @@
+[
+  'Laptop',
+  'Laptop',
+  'ADIDAS ORIGINAL',
+  'ZARA COAT 3',
+  'iphone 13 pro'
+]
+6989a2f348d62064b2f64c23

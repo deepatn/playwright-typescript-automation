@@ -1,0 +1,72 @@
+import {test, expect, Locator} from '@playwright/test';
+import {customtest} from "../Utils/Test-Base";
+import { POManager } from '../pageobjects/POManager';
+import dataset from "../Utils/placeOrderTestData.json";
+
+for(const data of dataset){
+test(`@web Client App Login for ${data.productName}`, async ({page})=>{
+    const productCards:Locator = page.locator(".card-body");
+    const expiry:Locator = page.locator("[class='input ddl']");
+    const cvv:Locator = page.locator("xpath=//div[contains(.,'CVV Code ') and @class='title']/..//input");
+    const cardName:Locator = page.locator("xpath=//div[contains(.,'Name on Card') and @class='title']/..//input");
+    const poManager: POManager = new POManager(page);
+    const loginPage = poManager.getLoginPage();
+    const dashBoardPage = poManager.getDashBoardPage();
+    const cartPage = poManager.getCartPage();
+    const orderHistoryPage = poManager.getOrderHistoryPage();
+    const orderReviewPage = poManager.getOrderReviewPage();
+    await loginPage.goTo();
+    await loginPage.validLogin(data.userName, data.password);
+   // await page.waitForLoadState('networkidle');
+    await page.locator(".card-body b").first().waitFor();
+    await dashBoardPage.searchProduct(data.productName);
+    await dashBoardPage.goToCart();
+    await page.locator("div li").first().waitFor();
+    await cartPage.getProductLocator(data.productName);
+    await cartPage.validateProductInCart(data.productName);
+    await cartPage.clickCheckout();
+    await orderReviewPage.fillCardDetails("06","30","123","Ansika Roy");
+    await orderReviewPage.selectCountry("Ind");
+    await orderReviewPage.placeOrder(data.userName);
+    await expect(page.locator('.hero-primary')).toHaveText(" Thankyou for the order. ");
+    const orderId:string | null = await page.locator(".em-spacer-1 .ng-star-inserted").textContent();
+    const orderIdTrimmed = await orderReviewPage.verifyOrderSuccess();
+    console.log(orderIdTrimmed);
+    await orderHistoryPage.myOrdersPageClick();
+    await orderHistoryPage.getOrderIdFromOrders(orderIdTrimmed);
+    await orderHistoryPage.verifyOrderInOrderDetails(orderIdTrimmed);
+});
+}
+
+customtest(`Client App Login`, async ({page,testDataforOrder})=>{
+    const productCards:Locator = page.locator(".card-body");
+    const expiry:Locator = page.locator("[class='input ddl']");
+    const cvv:Locator = page.locator("xpath=//div[contains(.,'CVV Code ') and @class='title']/..//input");
+    const cardName:Locator = page.locator("xpath=//div[contains(.,'Name on Card') and @class='title']/..//input");
+    const poManager: POManager = new POManager(page);
+    const loginPage = poManager.getLoginPage();
+    const dashBoardPage = poManager.getDashBoardPage();
+    const cartPage = poManager.getCartPage();
+    const orderHistoryPage = poManager.getOrderHistoryPage();
+    const orderReviewPage = poManager.getOrderReviewPage();
+    await loginPage.goTo();
+    await loginPage.validLogin(testDataforOrder.userName, testDataforOrder.password);
+   // await page.waitForLoadState('networkidle');
+    await page.locator(".card-body b").first().waitFor();
+    await dashBoardPage.searchProduct(testDataforOrder.productName);
+    await dashBoardPage.goToCart();
+    await page.locator("div li").first().waitFor();
+    await cartPage.getProductLocator(testDataforOrder.productName);
+    await cartPage.validateProductInCart(testDataforOrder.productName);
+    await cartPage.clickCheckout();
+    await orderReviewPage.fillCardDetails("06","30","123","Ansika Roy");
+    await orderReviewPage.selectCountry("Ind");
+    await orderReviewPage.placeOrder(testDataforOrder.userName);
+    await expect(page.locator('.hero-primary')).toHaveText(" Thankyou for the order. ");
+    const orderId:string | null = await page.locator(".em-spacer-1 .ng-star-inserted").textContent();
+    const orderIdTrimmed = await orderReviewPage.verifyOrderSuccess();
+    console.log(orderIdTrimmed);
+    await orderHistoryPage.myOrdersPageClick();
+    await orderHistoryPage.getOrderIdFromOrders(orderIdTrimmed);
+    await orderHistoryPage.verifyOrderInOrderDetails(orderIdTrimmed);
+});

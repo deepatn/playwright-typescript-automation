@@ -1,0 +1,63 @@
+import { test, expect, Locator } from '@playwright/test';
+
+let webContext: any;
+
+test.beforeAll(async ({browser}) => {
+
+    const context = await browser.newContext();
+    const page = await context.newPage();
+    await page.goto("https://rahulshettyacademy.com/client");
+    await page.getByPlaceholder("email@example.com").fill("ansika@gmail.com");
+    await page.getByPlaceholder("enter your passsword").fill("Iamking@000");
+    await page.getByRole("button", { name: "Login" }).click();
+    await page.locator(".card-body b").first().waitFor();
+    await context.storageState({ path: 'state.json' });
+    webContext = await browser.newContext({ storageState: 'state.json' });
+});
+
+test('@api Browser Context Validations', async () => {
+
+    const page = await webContext.newPage();
+    const productName: string = "ZARA COAT 3";
+    await page.goto("https://rahulshettyacademy.com/client");
+    const productCards: Locator = page.locator(".card-body");
+    const expiry: Locator = page.locator("[class='input ddl']");
+    const cvv: Locator = page.locator("xpath=//div[contains(.,'CVV Code ') and @class='title']/..//input");
+    const cardName: Locator = page.locator("xpath=//div[contains(.,'Name on Card') and @class='title']/..//input");
+
+    // await page.waitForLoadState('networkidle');
+    
+    await page.locator(".card-body").filter({ hasText: "ZARA COAT 3" }).first().getByRole("button", { name: "Add to Cart" }).click();
+    await page.getByRole("listitem").getByRole("button", { name: "Cart" }).click();
+    await page.locator("div li").first().waitFor();
+    expect(await page.getByText(productName).isVisible()).toBeTruthy();
+    await page.getByRole("button", { name: "Checkout" }).click();
+    await expiry.first().selectOption("06");
+    await expiry.last().selectOption("30");
+    await cvv.fill("123");
+    await cardName.fill("Ansika Roy");
+    await page.getByPlaceholder("Select Country").pressSequentially("Ind");
+    const dropdown: Locator = page.locator(".ta-results");
+    await dropdown.waitFor();
+    await page.getByRole("button", { name: "India" }).nth(1).click();
+    await expect(page.locator(".user__name label")).toHaveText("ansika@gmail.com");
+    await page.getByText("Place Order").click();
+    await expect(page.getByText("Thankyou for the order.")).toBeVisible();
+    const orderId: string | null = await page.locator(".em-spacer-1 .ng-star-inserted").textContent();
+    const orderIdTrimmed: string | undefined = orderId?.replaceAll("|", "").trim();
+    console.log(orderIdTrimmed);
+    await page.getByRole("button", { name: "ORDERS" }).click();
+    await page.locator("tbody").waitFor();
+    await page.locator("tbody tr").filter({ hasText: orderIdTrimmed }).getByRole("button", { name: "View" }).click();
+    const orderDetails: string | null = await page.locator("div.col-text").textContent();
+    expect(orderIdTrimmed?.trim().includes(orderDetails?.trim() || "")).toBeTruthy();
+});
+
+test('@api Test Case 2', async () => {
+
+    const page = await webContext.newPage();
+    const productName: string = "ZARA COAT 3";
+    await page.goto("https://rahulshettyacademy.com/client");
+    const productCards: Locator = page.locator(".card-body");
+    console.log(await page.locator(".card-body b").allTextContents());
+    });

@@ -1,0 +1,42 @@
+pipeline {
+    agent any
+
+    parameters {
+        choice(
+            name: 'TEST_SCRIPT',
+            choices: ['regression', 'webTests', 'apiTests', 'safariTests'],
+            description: 'Select which npm script to run'
+        )
+    }
+
+    environment {
+        PLAYWRIGHT_BROWSERS_PATH = '0'
+    }
+
+    stages {
+        stage('Install dependencies') {
+            steps {
+                bat 'call npm ci'
+                bat 'call npx playwright install --with-deps'
+            }
+        }
+
+        stage('Run Playwright Tests') {
+            steps {
+                script {
+                    echo "Running npm script: ${params.TEST_SCRIPT}"
+                    bat "call npm run ${params.TEST_SCRIPT}"
+                }
+            }
+        }
+
+        stage('Publish Allure Report') {
+            steps {
+                allure([
+                    reportBuildPolicy: 'ALWAYS',
+                    results: [[path: 'allure-results']]
+                ])
+            }
+        }
+    }
+}
